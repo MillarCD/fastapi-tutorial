@@ -16,14 +16,14 @@ CREATE TABLE `Tipos_evaluaciones` (
 );
 
 CREATE TABLE `Evaluaciones` (
-  `id` VARCHAR(5) NOT NULL,
+  `id_eva` VARCHAR(5) NOT NULL,
   `name` VARCHAR(100) NOT NULL,
   `value` FLOAT,
-  `date` DATE,
+  `eval_date` DATE,
   `note` FLOAT,
   `code` VARCHAR(20) NOT NULL,
-  `type` VARCHAR(100) NOT NULL,
-  PRIMARY KEY (`id`),
+  `evaluation_type` VARCHAR(100) NOT NULL,
+  PRIMARY KEY (`id_eva`),
   FOREIGN KEY (`code`) REFERENCES Asignaturas(`code`),
-  FOREIGN KEY (`type`) REFERENCES Tipos_evaluaciones(`type_name`)
+  FOREIGN KEY (`evaluation_type`) REFERENCES Tipos_evaluaciones(`type_name`)
 );

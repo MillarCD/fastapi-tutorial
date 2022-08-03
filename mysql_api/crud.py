@@ -6,10 +6,35 @@ def get_courses(db: Session):
     courses = db.query(models.Course).all()
     return courses
 
+def get_course(db: Session, code: str):
+    return db.query(models.Course).filter(models.Course.code==code).first()
 
-# def get_evaluations(db: Session, course_name: str):
-#     course= db.query(models.Course).filter(models.Course.name==course_name).all()
-#     print('course: ',course)
-#     course_code = course.code
-#     print('course_code: ', course_code)
-#     return db.query(models.Evaluation).filter(models.Evaluations.course_code==course_code)
+def create_course(db: Session, course: schemas.CourseCreate):
+    db_course = models.Course(code=course.code, name=course.name)
+    db.add(db_course)
+    db.commit()
+    db.refresh(db_course)
+
+    return db_course
+
+
+def get_evaluations(db: Session, course_code: str):
+    return db.query(models.Evaluation).filter(models.Evaluation.code==course_code).all()
+
+
+def create_evaluation(db: Session, course_code: str, evaluation: schemas.EvaluationCreate):
+#     db_evaluation = models.Evaluation(
+#                 id_eva= evaluation.id_eva,
+#                 name= evaluation.name,
+#                 value= evaluation.value,
+#                 eval_date= evaluation.eval_date,
+#                 evaluation_type= evaluation.evaluation_type
+#             )
+
+    db_evaluation = models.Evaluation( **evaluation.dict(), code=course_code )
+
+    db.add(db_evaluation )
+    db.commit()
+    db.refresh(db_evaluation)
+
+    return db_evaluation

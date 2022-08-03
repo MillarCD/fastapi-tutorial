@@ -1,29 +1,31 @@
 from pydantic import BaseModel
 from datetime import date
 
-## Tipo de evaluaciones
 
-class EvaluationsTypes(BaseModel):
-    name: str
+## Tipo de evaluaciones
+class EvaluationType(BaseModel):
+    type_name: str
     class Config:
         orm_mode = True
 
-## Evaluaciones
 
-class EvaluationsBase(BaseModel):
+## Evaluaciones
+class EvaluationBase(BaseModel):
+    id_eva: str
     name: str
     value: float | None = None
     eval_date: date | None = None
-    type: EvaluationsTypes
+    evaluation_type: str
     
-class EvaluationsCreate(EvaluationsBase):
+class EvaluationCreate(EvaluationBase):
     pass
 
-class Evaluations(EvaluationsBase):
+class Evaluation(EvaluationBase):
     note: float | None = None
 
     class Config:
         orm_mode = True
+
 
 ## asignaturas
 class CourseBase(BaseModel): # modelo base
@@ -31,12 +33,12 @@ class CourseBase(BaseModel): # modelo base
     code: str
 
 class CourseCreate(CourseBase): # modelo con los datos que entrega el usuario
-    pass
-
-class Course(CourseBase): # modelo que se retorna
-    evaluations: list[Evaluations] | None = None
-
     class Config:
         orm_mode = True
 
+class Course(CourseBase): # modelo que se retorna
+    evaluations: list[Evaluation] = []
+
+    class Config:
+        orm_mode = True
 

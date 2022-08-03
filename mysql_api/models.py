@@ -15,13 +15,13 @@ class Course(Base):
 class Evaluation(Base):
     __tablename__ = 'Evaluaciones'
 
-    id = Column(String, primary_key=True, index=True)
+    id_eva = Column(String, primary_key=True, index=True)
     name = Column(String, index=True)
     value = Column(Float, index=True)
-    date = Column(Date, index=True)
+    eval_date = Column(Date, index=True)
     note = Column(Float, index=True)
     code = Column(String, ForeignKey('Asignaturas.code'))
-    type = Column(String, ForeignKey('Tipos_evaluaciones.type_name'))
+    evaluation_type = Column(String, ForeignKey('Tipos_evaluaciones.type_name'))
 
     type_name = relationship('EvaluationType', back_populates='evaluations')
     course = relationship('Course', back_populates='evaluations')
