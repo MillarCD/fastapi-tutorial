@@ -23,7 +23,7 @@ def read_courses(skip: int=0, limit: int=100, db: Session = Depends(get_db)):
     courses = crud.get_courses(db)
     return courses
 
-@app.post('/course/', response_model=schemas.CourseCreate)
+@app.post('/course/', status_code=201, response_model=schemas.CourseCreate)
 def create_course(course: schemas.CourseCreate, db: Session = Depends(get_db)):
     db_course = crud.get_course(db, code=course.code)
     if db_course:
@@ -38,6 +38,6 @@ def read_evaluations(course_code: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail='Asignatura no registrada')
     return crud.get_evaluations(db, course_code)
 
-@app.post('/{course_code}/evaluation/', response_model=schemas.Evaluation)
+@app.post('/{course_code}/evaluation/', status_code=201, response_model=schemas.Evaluation)
 def create_evaluations(course_code: str, evaluation: schemas.EvaluationCreate, db: Session = Depends(get_db)):
     return crud.create_evaluation(db, course_code, evaluation)

@@ -23,13 +23,6 @@ def get_evaluations(db: Session, course_code: str):
 
 
 def create_evaluation(db: Session, course_code: str, evaluation: schemas.EvaluationCreate):
-#     db_evaluation = models.Evaluation(
-#                 id_eva= evaluation.id_eva,
-#                 name= evaluation.name,
-#                 value= evaluation.value,
-#                 eval_date= evaluation.eval_date,
-#                 evaluation_type= evaluation.evaluation_type
-#             )
 
     db_evaluation = models.Evaluation( **evaluation.dict(), code=course_code )
 
