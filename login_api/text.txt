@@ -1,1 +1,0 @@
-curl 'http://localhost:8000/users/me/' -H "Authorization: Bearer peyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJqb2huZG9lIiwiZXhwIjoxNjY4MTk2fQ.isLNRFf5TZOG9oYFRHFctexZQYcjpYgDUqOxxFr_AyQ"

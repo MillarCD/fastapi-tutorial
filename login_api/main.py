@@ -6,17 +6,14 @@ from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-from pydantic import BaseModel, Field
 
+from .database import db
+from .schemas import Token, TokenData, User, UserCreate, UserInDB
+from . import crud
 """
-    TODO: - seperar metodos de la base de datos
-          - hashear password
-          - añadir usuario
-
-          - incluir mongodb
-
+    TODO:
+        - desabilitar usuario
 """
-
 
 load_dotenv()
 
@@ -26,45 +23,11 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 ALGORITHM = os.getenv('ALGORITHM')
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES'))
 
-fake_users_db = {
-    "johndoe": {
-        "username": "johndoe",
-        "full_name": "John Doe",
-        "email": "johndoe@example.com",
-        "hashed_password": "$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW",
-        "disabled": False,
-    }
-}
-
 # PROGRAM
 
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
-app = FastAPI()
+app = FastAPI(docs_url='/', redoc_url=None)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
-
-# CLASSES MODELS
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
-class TokenData(BaseModel):
-    username: str | None = None
-
-
-class UserBase(BaseModel):
-    username: str
-    email: str | None = None
-    full_name: str | None = None
-
-class User(UserBase):
-    disabled: bool | None = None
-
-class UserCreate(UserBase):
-    password: str = Field(default=..., min_length=6)
-
-class UserInDB(User):
-    hashed_password: str
 
 # DEPENDENCIES AND UTILS FUNCTIONS
 
@@ -75,13 +38,8 @@ def get_password_hash(password):
     """util para registrar usuarios"""
     return pwd_context.hash(password)
 
-def get_user(db, username: str):
-    if username in db:
-        user_dict = db[username]
-        return UserInDB(**user_dict)
-
 def authenticate_user(db, username: str, password: str):
-    user = get_user(db, username)
+    user: UserInDB = crud.get_user(db, username)
     if not user:
         return False
     if not verify_password(password, user.hashed_password):
@@ -93,8 +51,6 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
 
-        print(f'datetime: {datetime.utcnow().timestamp()}')
-        print(f'expire: {expire.timestamp()}')
     else:
         expire = datetime.utcnow() + timedelta(minutes=10)
     to_encode.update({'exp': int(expire.timestamp())})
@@ -122,7 +78,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         token_data = TokenData(username=username)
     except JWTError:
         raise credentials_exception
-    user = get_user(fake_users_db, username=token_data.username)
+    user = crud.get_user(db, username=token_data.username)
     if user is None:
         raise credentials_exception
     return user
@@ -137,7 +93,7 @@ async def get_current_active_user(current_user: User = Depends(get_current_user)
 
 @app.post('/token', response_model=Token, tags=['Get-access-token'])
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
-    user = authenticate_user(fake_users_db, form_data.username, form_data.password)
+    user = authenticate_user(db, form_data.username, form_data.password)
     if not user:
         raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -150,18 +106,23 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         )
     return {'access_token': access_token, 'token_type': 'Bearer'}
 
-@app.post('/register', response_model=UserBase, status_code=201, tags=['User'])
+@app.post('/register', response_model=Token, status_code=201, tags=['User'])
 async def create_user(newUser: UserCreate):
-    if (get_user(fake_users_db, newUser.username)):
+    if (crud.get_user(db, newUser.username)):
         raise HTTPException(status_code=400, detail='username is already register')
+    
+    userInDB = UserInDB(
+            **newUser.dict(),
+            hashed_password=get_password_hash(newUser.password)
+        )
+    res = crud.create_user(db, userInDB)
 
-    return newUser
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+            data={'sub': newUser.username}, expires_delta=access_token_expires
+        )
+    return {'access_token': access_token, 'token_type': 'Bearer'}
     
 @app.get('/users/me/', response_model=User, tags=['User'])
 async def read_users_me(current_user: User = Depends(get_current_active_user)):
-
     return current_user
-
-@app.get('/', tags=['General'])
-async def hello():
-    return {'content': 'hello world'}
