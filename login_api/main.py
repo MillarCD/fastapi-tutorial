@@ -8,7 +8,7 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 
 from .database import db
-from .schemas import Token, TokenData, User, UserCreate, UserInDB
+from .schemas import Token, TokenData, User, UserCreate, UserInDB, UserUpdatingData
 from . import crud
 """
     TODO:
@@ -106,7 +106,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         )
     return {'access_token': access_token, 'token_type': 'Bearer'}
 
-@app.post('/register', response_model=Token, status_code=201, tags=['User'])
+@app.post('/user/register', response_model=Token, status_code=201, tags=['User'])
 async def create_user(newUser: UserCreate):
     if (crud.get_user(db, newUser.username)):
         raise HTTPException(status_code=400, detail='username is already register')
@@ -122,6 +122,11 @@ async def create_user(newUser: UserCreate):
             data={'sub': newUser.username}, expires_delta=access_token_expires
         )
     return {'access_token': access_token, 'token_type': 'Bearer'}
+
+@app.put('/user', response_model=User, tags=['User'])
+async def disable_user(newData: UserUpdatingData, current_user: User = Depends(get_current_user)):
+    res = crud.update_user(db, current_user, newData)
+    return res 
     
 @app.get('/users/me/', response_model=User, tags=['User'])
 async def read_users_me(current_user: User = Depends(get_current_active_user)):

@@ -22,4 +22,8 @@ class User(UserBase):
 class UserInDB(User):
     hashed_password: str
 
+class UserUpdatingData(BaseModel):
+    email: str | None = None
+    full_name: str | None = None
+    disabled: bool = False
 

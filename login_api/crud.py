@@ -21,3 +21,10 @@ def get_user(db: Database, username: str) -> schemas.UserInDB:
 def create_user(db: Database, user: schemas.UserInDB):
     db['users'].insert_one(dict(user.dict()))
     return True
+
+def update_user(db: Database, user: schemas.UserInDB, data: schemas.UserUpdatingData):
+    if not verify_collection(db, 'users'):
+        return None
+
+    db['users'].update_one({'username': user.username}, { "$set": { key:value for key, value in data.dict().items() if (value!=None) } } )
+    return get_user(db, user.username)
