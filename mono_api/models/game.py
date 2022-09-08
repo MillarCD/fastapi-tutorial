@@ -26,3 +26,7 @@ class Game:
         player_2.addMoney(monto)
 
         return [ player_1, player_2 ]
+
+    def getPlayersNames(self):
+        return list(map(lambda player: player.name, self.players))
+

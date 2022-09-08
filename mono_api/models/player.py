@@ -4,17 +4,17 @@ class Player:
     def __init__(self, name: str, websocket: WebSocket):
         self.name = name
         if(name=='bank'):
-            self.money = 999999
+            self.cash = 999999
         else:
-            self.money = 0
+            self.cash = 0
         self.websocket = websocket
 
-    def addMoney(self, money: int):
-        self.money += money
+    def addMoney(self, cash: int):
+        self.cash += cash
 
-    def restMoney(self, money: int):
-        if(self.money - money < 0):
+    def restMoney(self, cash: int):
+        if(self.cash - cash < 0):
             return False
 
-        self.money -= money
+        self.cash -= cash
         return True
