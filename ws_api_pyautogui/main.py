@@ -1,12 +1,10 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 import pyautogui
 
-
 app = FastAPI()
 
 KEYS = ['enter', 'backspace', 'space']
 def press_keys(key: str):
-    
     if (key in KEYS or len(key)==1):
         pyautogui.press(key)
 
